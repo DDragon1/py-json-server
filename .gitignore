@@ -1,0 +1,4 @@
+mongo.tar
+pyjsonserver-1.tar
+python3.10.6-buster.tar
+*.pyc

@@ -1,0 +1,45 @@
+# todo - add random int
+
+###########
+
+from datetime import datetime
+import random
+
+
+def randromTimestamp():
+    k = datetime.now()
+    k = k.timestamp() - random.randint(0,4)
+    return datetime.fromtimestamp(k)
+    
+k = randromTimestamp
+print(datetime.now())
+print(k())
+
+###########
+from enum import Enum
+from functools import partial
+
+def f(a1: int):
+    print(a1)
+    
+def f2(s: str, s2: str):
+    print (s + " " + s2)
+    
+def f3():
+    print ("in f3!")
+
+class MyEnum(Enum):
+    a = partial(f3)
+    b = partial(f2)
+    c = partial(f)
+    
+    def __call__(self, args = {}):
+        self.value(**args)
+
+j = {"s2": "abc", "s": "ytu"}    
+k = MyEnum.a
+k = MyEnum['a']()
+k = MyEnum.b
+k = MyEnum['c']({"a1":555})
+k = MyEnum['b'](j)
+#k(**j)
