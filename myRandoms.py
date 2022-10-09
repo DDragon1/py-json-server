@@ -22,7 +22,7 @@ def randomString(size:int = 8, chars=printable) -> str:
 def randomGEO(minX: float = 32.0, maxX: float = 33.5, minY: float = 35.0, maxY: float = 36.5) -> tuple[float, float]:
     return (randomFloat(minX, maxX, GEO_DECIMAL_POINT), randomFloat(minY, maxY, GEO_DECIMAL_POINT))
 
-def randromTimestamp(delta: int = 4) -> datetime:
+def randomTimestamp(delta: int = 4) -> datetime:
     k = datetime.now().timestamp() - randint(0,delta) # get time as seconds
     return datetime.fromtimestamp(k).isoformat() # return time as timestamp
 
@@ -37,7 +37,7 @@ class RandomsEnums(Enum):
     randomGEO = partial(randomGEO)
     randomFloat = partial(randomFloat)
     randomInt = partial(randomInt)
-    randromTimestamp = partial(randromTimestamp)
+    randomTimestamp = partial(randomTimestamp)
     randomEnum = partial(randomEnum)
     insertObject = partial(insertObject)
 
