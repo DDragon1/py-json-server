@@ -8,7 +8,8 @@ You will need a **`mongoDB`** and a way to run `docker` / `python`
 - Get a specific Json with a specific URL (data in a collection)
 - Get a Json with randomize fields that have been configured in the input
 - Randomizble fields - string, int, float, timestamp, GEO position, ENUMS, object
-- Get an save the randomize response back in the mongoDB  
+- Get an save the randomize response back in the mongoDB
+- Get a Json with relative randomize fields and save it back in the mongoDB  
 - Get a Json with a `fake` url, so you can add every URI or params at the end of it    
 
 ## Environment Variables  
@@ -47,6 +48,8 @@ Or use run the docker image
 | `api` | `string` | **Required**. The name of the collection |
 
 #### Get item
+for getting the item from the DB, if it has the `override` option
+the returned json will be randomize as configured in the DB.
 ```http
   GET /<api>/<name?>/<version?>
   POST /<api>/<name?>/<version?>
@@ -58,6 +61,37 @@ Or use run the docker image
 | `name` | `string` | **Not Required**. The name of the item |
 | `version` | `string` | **Not Required**. The version of the item |
 
+#### Get a relative randomize item
+for getting the item from the DB, if it has the `override` option, 
+the returned json will be randomize as configured in the DB.
+if the `re-override` option is configured, the values will be relative to the previous ones
+the returned values will be saved in the DB.
+```http
+  GET /override/<api>/<name?>/<version?>
+  POST /override/<api>/<name?>/<version?>
+```  
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `api`  | `string` | **Required**. The name of the collection |
+| `name` | `string` | **Not Required**. The name of the item |
+| `version` | `string` | **Not Required**. The version of the item |
+
+#### Reset the `re-override` option for the item
+Reset the `re-override` to `False` for the chosen item
+
+```http
+  GET /resetOverride/<api>/<name?>/<version?>
+```  
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `api`  | `string` | **Required**. The name of the collection |
+| `name` | `string` | **Not Required**. The name of the item |
+| `version` | `string` | **Not Required**. The version of the item |
+
+
+#### Add item
 ~~~http
   POST add/<api>/<name?>/<version?>
 ~~~
@@ -68,8 +102,11 @@ Or use run the docker image
 | `name` | `string` | **Not Required**. The name of the item |  'default' |
 | `version` | `string` | **Not Required**. The version of the item   | '1' |
 
+#### Get item with a fake URL after the fake param (can be used as a DNS/base URL)
+get or override depends on the prefix of the URL
 ~~~http
   GET <api>/<name?>/<version?>/fake/<every string>
+  GET <override>/<api>/<name?>/<version?>/fake/<every string>
 ~~~
 
 | Parameter | Type     | Description                       |
@@ -218,6 +255,18 @@ The calculation is random_between(`time.now().asSeconds()` - `delta`, `time.now(
 }
 ~~~
 
+### randomUUID
+
+Replaces the desired key's value with a randomize UUID (like the java one)
+This options has no `params` option
+
+~~~Json
+"overrides": {
+	"uuid": {
+		"type": "randomUUID",
+	}
+}
+~~~
 ### randomEnum
 
 Replaces the desired key's value with a one of the elements in the input array
@@ -264,126 +313,55 @@ Replaces the desired key's value with an object, can be used to insert an object
 }
 ~~~
 
-## Usage/Examples  
-object in the <api> collection
-~~~Json  
-  {
-	"name": "shimon",
-	"version": "1",
-	"data": {
-		"action_name": "mobile signup",
-		"functions": [{
-			"name": "test_signUp",
-			"parameters": {
-				"username": "max@getappcard.com",
-				"password": "12345",
-				"mobileLater": "123454231",
-				"mobile": "1e2w1e2w",
-				"card": "1232313",
-				"cardLater": "1234321234321"
-			}
-		}],
-		"validations": [{
-				"MOB_header": "My stores"
-			},
-			{
-				"url": "/stores/my"
-			}
-		]
+ ## Supported Relative Randoms
+For changing the current value with a relative new value
+
+### keepValue
+
+Keeps the current value
+This options has no `params` option
+
+~~~Json
+"overrides": {
+	"uuid": {
+		"type": "randomUUID",
 	},
-	"overrides": {
-		"username": {
-			"type": "randomFloat",
-			"params": {
-				"min": 1,
-				"max": 7,
-				"decPlace": 2
-			}
-		}
+	"re-override": {
+		"type": "keepValue"
 	}
 }
-~~~  
- 
-## API Reference
-
-#### Get all items for an API  
-
-```http
-  GET /all/<api>
-  POST /all/<api>
-```  
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api` | `string` | **Required**. The name of the collection |
-
-#### Get item
-```http
-  GET /<api>/<name?>/<version?>
-  POST /<api>/<name?>/<version?>
-```  
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api`  | `string` | **Required**. The name of the collection |
-| `name` | `string` | **Not Required**. The name of the item |
-| `version` | `string` | **Not Required**. The version of the item |
-
-~~~http
-  POST add/<api>/<name?>/<version?>
 ~~~
+### relativeInt
 
-| Parameter | Type     | Description                         | Default   |
-| :-------- | :------- | :---------------------------------- | :-------- |
-| `api`  | `string` | **Required**. The name of the collection | |
-| `name` | `string` | **Not Required**. The name of the item |  'default' |
-| `version` | `string` | **Not Required**. The version of the item   | '1' |
-
-~~~http
-  GET <api>/<name?>/<version?>/fake/<every string>
-~~~
-
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `api`  | `string` | **Required**. The name of the collection |
-| `name` | `string` | **Not Required**. The name of the item |
-| `version` | `string` | **Not Required**. The version of the item |
-| `every string` | `string` | **Not Required**. Whatever string and params you want |  
- 
-
-## Environment Variables  
-To run this project, you will need to add the following environment variables to your .env file  
-`MONGO_CONNECTION`  The connection string of the mongo, **default:** `mongodb://localhost:27017`
-
-`MONGO_DB_NAME`  The name of the DB in the Mongo, **default:** `Shimon`
-
-
-## Supported Randoms
-
-### randomInt
-
-Replaces the desired key's value with a random integer
+Adds to the desired key's value a random integer 
 
 | Argument   | Type     | Default    | Description                       |
 | :--------- | :------- | :---------: | :-------------------------------- |
-| `min`   | `int` | `0` | The min value of the random |
-| `max`  | `int` | `100` | The max value of the random |
+| `min`   | `int` | `0` | The min value of the random to be added|
+| `max`  | `int` | `100` | The max value of the random to be added |
 
 ~~~Json
 "overrides": {
-	"id": {
+	"numberOfOrders": {
 		"type": "randomInt",
 		"params": {
 			"min": 1,
 			"max": 1000
 		}
+	},
+	"re-override": {
+		"type": "relativeInt",
+		"params": {
+			"min": 0,
+			"max": 5
+		}
 	}
 }
 ~~~
 
-### randomFloat
+### relativeFloat
 
-Replaces the desired key's value with a random float number
+Adds to the desired key's value a random float
 
 | Argument   | Type     | Default    | Description                       |
 | :--------- | :------- | :---------: | :-------------------------------- |
@@ -391,61 +369,30 @@ Replaces the desired key's value with a random float number
 | `max`  | `float` | `100.0` | The max value of the random |
 | `decPlace`  | `int` | `2` | The number of decimals to use when rounding the number |
 
+
 ~~~Json
 "overrides": {
-	"age": {
+	"tokens": {
 		"type": "randomFloat",
 		"params": {
 			"min": 0.0,
-			"max": 120.0,
+			"max": 100.0,
             "decPlace": 1
 		}
-	}
-}
-~~~
-
-### randomString
-
-Replaces the desired key's value with a randomize string from the input chars
-
-| Argument   | Type     | Default    | Description                       |
-| :--------- | :------- | :---------: | :-------------------------------- |
-| `size`   | `int` | `8` | The min value of the random |
-| `chars`  | `sequence` | `printable` | A sequence like a list, a tuple, a range of numbers etc. |
-
-`printable` - pre-initialized string in python. A set of punctuation, digits, ascii_letters and whitespace
-
-**More premade sets:** (from string.pyi)
-* ascii_letters
-* ascii_lowercase
-* ascii_uppercase
-* capwords
-* digits
-* hexdigits
-* octdigits
-* printable
-* punctuation
-* whitespace
-* Formatter
-* Template
-
-`chars` - can be a every string, not only the premade sets
-
-~~~Json
-"overrides": {
-	"username": {
-		"type": "randomString",
+	},
+	"re-override": {
+		"type": "relativeFloat",
 		"params": {
-			"size": 10,
-            "chars": "ascii_lowercase"
+			"min": -0.5,
+			"max": 0.5
 		}
 	}
 }
 ~~~
 
-### randomGEO
+### relativeGEO
 
-Replaces the desired key's value with a randomize tuple of 2 float numbers
+Adds to the desired key's value a randomize tuple of 2 float numbers
 
 | Argument   | Type     | Default    | Description                       |
 | :--------- | :------- | :---------: | :-------------------------------- |
@@ -464,6 +411,15 @@ Replaces the desired key's value with a randomize tuple of 2 float numbers
             "minY": 35.0,
             "maxY": 36.8
 		}
+	},
+	"re-override": {
+		"type": "relativeGEO",
+		"params": {
+			"minX": -0.5,
+            "maxX": 0.5,
+            "minY": -0.3,
+            "maxY": 0.3
+		}
 	}
 }
 ~~~
@@ -474,72 +430,6 @@ result example:
 	33.168916,
 	35.172589
 ]
-~~~
-### randomTimestamp
-
-Replaces the desired key's value with a randomize timestamp between the current time and the time with `delta` seconds before the current time
-
-| Argument   | Type     | Default    | Description                       |
-| :--------- | :------- | :---------: | :-------------------------------- |
-| `delta`   | `int` | `4` | The number of seconds before the cuurent time, the minimun random timestamp can be |
-
-The calculation is random_between(`time.now().asSeconds()` - `delta`, `time.now()`)
-
-~~~Json
-"overrides": {
-	"lastUpdateTime": {
-		"type": "randomTimestamp",
-		"params": {
-			"delta": 4
-		}
-	}
-}
-~~~
-
-### randomEnum
-
-Replaces the desired key's value with a one of the elements in the input array
-
-| Argument   | Type     | Default    | Description                       |
-| :--------- | :------- | :---------: | :-------------------------------- |
-| `enums`   | `array` | `[]` | The elements that can be the desired value |
-
-~~~Json
-"favoriteColor": {
-	"location": {
-		"type": "randomEnum",
-		"params": {
-			"enums": [
-                "green", "blue", "yellow", 1, 
-                {
-				"more": "black"
-				}
-            ]
-		}
-	}
-}
-~~~
-
-### insertObject
-
-Replaces the desired key's value with an object, can be used to insert an object to a certain key 
-
-| Argument   | Type     | Default    | Description                       |
-| :--------- | :------- | :---------: | :-------------------------------- |
-| `obj`   | `object` | `None` | The object that we want to set as the value |
-
-~~~Json
-"overrides": {
-	"child": {
-		"type": "insertObject",
-		"params": {
-			"obj": {
-					"name": "son",
-					"age": 12
-				}
-		}
-	}
-}
 ~~~
 
 ## Usage/Examples  
@@ -584,12 +474,17 @@ object in the <api> collection
     ],
     "child": "jhon"
   },
+
+  "re-override": true,
   "overrides": {
     "id": {
       "type": "randomInt",
       "params": {
         "min": 1,
         "max": 1000
+      },
+	  "re-override": {
+        "type": "keepValue"
       }
     },
     "username": {
@@ -611,6 +506,28 @@ object in the <api> collection
         "min": 13,
         "max": 99,
         "decPlace": 1
+      },
+	  "re-override": {
+        "type": "relativeInt",
+        "params": {
+          "min": -3,
+          "max": 0
+        }
+      }
+    },
+	"tokens": {
+      "type": "randomFloat",
+      "params": {
+        "min": 13,
+        "max": 99,
+        "decPlace": 1
+      },
+	  "re-override": {
+        "type": "relativeFloat",
+        "params": {
+          "min": -3.1,
+          "max": 6.2
+        }
       }
     },
     "lastUpdateTime": {
@@ -624,7 +541,16 @@ object in the <api> collection
       "params": {
         "minX": 33.3,
         "maxX": 34.2
-      }
+      },
+	  "re-override": {
+		"type": "relativeGEO",
+		"params": {
+			"minX": -0.5,
+            "maxX": 0.5,
+            "minY": -0.3,
+            "maxY": 0.3
+		}
+	}
     },
     "favoriteColor": {
       "type": "randomEnum",
@@ -718,7 +644,12 @@ Start the server
 ~~~bash  
 flask run --host=0.0.0.0
 ~~~   
-## Roadmap  
-- [ ] save the current randroms so the ID's won't change 
+## Roadmap
+
+- [X] add `override` options with randromize output
+
+- [X] add `re-override` option with +- randroms
+
+- [X] save the current randroms so the ID's won't change 
 
 - [ ] add changes by positions in tree

@@ -14,9 +14,10 @@ def get_first_data(api,name,version):
         result = results[0]
         id = get_object_id(result)
         data = extract_data(result)
-        overrides = extract_overrides(result)
+        overrides = result.get('overrides')
+        re_override = result.get('re-override', False)
         if overrides != None:
-            update_nested(data, overrides)
+            update_nested(data, overrides, re_override)
         return data, id
     return {}, None
     
@@ -58,13 +59,13 @@ def insert_data(api,name,version, data):
         id = result.inserted_id
     else:
         id = resultsList[0][MONGO_ID_FIELD]
-        update_data(api, id, data, True)
+        update_data(api, id, data, False, True)
     return str(id)
 
-def update_data(api, id, data, isUpsert : bool = False, isReturnDocument : ReturnDocument = ReturnDocument.AFTER):
+def update_data(api, id, data, re_override: bool = False, isUpsert : bool = False, isReturnDocument : ReturnDocument = ReturnDocument.AFTER):
     try:
         collection = get_collection(api)
-        return collection.find_one_and_update({MONGO_ID_FIELD: ObjectId(id)}, {'$set': {'data': data}}, upsert = isUpsert, return_document = isReturnDocument)
+        return collection.find_one_and_update({MONGO_ID_FIELD: ObjectId(id)}, {'$set': {'data': data, 're-override': re_override}}, upsert = isUpsert, return_document = isReturnDocument)
     except Exception as err:
         raise Exception('Failed to update the item ', err)
 

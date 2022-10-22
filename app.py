@@ -11,7 +11,7 @@ except Exception as err:
 @app.route('/<api>', defaults={'name' : None, 'version': None}, methods = ['POST', 'GET'])
 @app.route('/<api>/<name>', defaults={'version': None}, methods = ['POST', 'GET'])
 @app.route('/<api>/<name>/<version>', methods = ['POST', 'GET'])
-def get_first_api(api:str,name:str = None ,version:str = None):
+def get_randomize_api(api:str,name:str = None ,version:str = None):
     try:
         result, _ = get_first_data(api,name,version)
         return jsonify(result)
@@ -31,10 +31,22 @@ def get_all_data(api:str):
 @app.route('/override/<api>', defaults={'name' : 'default', 'version': '1'}, methods = ['POST', 'GET'])
 @app.route('/override/<api>/<name>', defaults={'version': '1'}, methods = ['POST', 'GET'])
 @app.route('/override/<api>/<name>/<version>', methods = ['POST', 'GET'])
-def get_and_override(api:str,name:str,version:str):
+def get_randomize_and_override(api:str,name:str,version:str):
     try:
         result, id = get_first_data(api,name,version)
-        update_data(api,id,result)
+        update_data(api,id,result, True)
+        return jsonify(result)
+    except Exception as err:
+        print (err)
+        return handleException(err)
+
+@app.route('/resetOverride/<api>', defaults={'name' : 'default', 'version': '1'}, methods = ['POST', 'GET'])
+@app.route('/resetOverride/<api>/<name>', defaults={'version': '1'}, methods = ['POST', 'GET'])
+@app.route('/resetOverride/<api>/<name>/<version>', methods = ['POST', 'GET'])
+def reset_re_override(api:str,name:str,version:str):
+    try:
+        result, id = get_first_data(api,name,version)
+        update_data(api,id,result, False)
         return jsonify(result)
     except Exception as err:
         print (err)
@@ -55,14 +67,21 @@ def insert_new(api:str,name:str,version:str):
 @app.route('/<path:path>')
 def catch_all(path: str):
     if (path.__contains__('fake')):
+        override_url = False
         k = path.split('/')
+        if (k[0] == 'override'):
+            override_url = True
+            k.pop(0)
         api = k[0]
         name = version = None
         if (k[1] != 'fake'):
             name = k[1]
             if (k[2] != 'fake'):
                 version = k[2]
-        return get_first_api(api, name, version)
+
+        if (override_url):
+            return get_randomize_and_override(api, name, version)
+        return get_randomize_api(api, name, version)
     return handle_404(None)
     
 @app.errorhandler(404)
