@@ -10,6 +10,7 @@ ENV MONGO_DB_NAME=Shimon
 WORKDIR /opt/app
 
 COPY *.py /opt/app/
+COPY README.md /opt/app/
 
 EXPOSE 5000
 
